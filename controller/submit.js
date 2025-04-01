@@ -1,10 +1,16 @@
 // veni 
 const fs = require("fs");
 const db = require('../config');
+const multer = require("multer");
 const path = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
 //const fastCsv = require("@fast-csv/parse");
 
 const cloudinary = require('cloudinary').v2;
+// ✅ Multer Configuration for Storing Files Temporarily
+//const storage = multer.diskStorage({});
+
 
 // Cloudinary Configuration
 cloudinary.config({
@@ -13,83 +19,74 @@ cloudinary.config({
     api_secret: 'p12EKWICdyHWx8LcihuWYqIruWQ'
 });
 
+// ✅ Multer Storage for Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'task_submissions',  // Folder name on Cloudinary
+        allowed_formats: ['jpg', 'png', 'pdf']  // Allowed formats for upload
+    }
+});
 
+const upload = multer({ storage });
 
-// const submitTask = async (req, res) => {
-//     try {
-
-//         const { task_id, comments, user_id } = req.body;
-
-//         if (!task_id || !user_id) {
-//             return res.status(422).json({ message: "Task ID and User ID are required" });
-//         }
-
-//         let image = "";
-//         if (req.file) {
-//             image = `http://127.0.0.1:5008/upload/${req.file.filename}`;
-//         }
-
-//         const data = { task_id, upload_file: image, comments, user_id };
-
-//         const sql = 'INSERT INTO task_submission SET ?';
-//         const [result] = await db.query(sql, [data]);
-
-//         if (result.affectedRows > 0) {
-//             return res.status(200).json({ message: "Task Submitted Successfully" });
-//         } else {
-//             return res.status(500).json({ message: "Failed to submit task" });
-//         }
-//     } catch (error) {
-//         return res.status(500).json({ error: error.message });
-//     }
-// };
 
 
 
 const submitTask = async (req, res) => {
     try {
+        console.log("Request Body:", req.body);
+        console.log("Uploaded File:", req.files); // ✅ Log to check file
+
         const { task_id, comments, user_id } = req.body;
 
         if (!task_id || !user_id) {
-            return res.status(422).json({ message: "Task ID and User ID are required" });
+            return res.status(400).json({ status: "false", message: "task_id and user_id are required." });
         }
 
-        let imageUrls = []; // ✅ Store multiple image URLs
+        let submitFileUrl = ""; // Default empty
 
-        if (req.files && req.files.image) {
-            const images = Array.isArray(req.files.image) ? req.files.image : [req.files.image];
+        if (req.files && req.files.submitFile) {  // ✅ Corrected field name
+            const file = req.files.submitFile;
 
-            for (let file of images) {
-                const imageUpload = await cloudinary.uploader.upload(file.tempFilePath, {
-                    folder: "task_submissions"
-                });
-                imageUrls.push(imageUpload.secure_url); // ✅ Store uploaded image URL
-            }
-        }
+            console.log("Uploading to Cloudinary...");
 
-        const data = { 
-            task_id, 
-            upload_file: JSON.stringify(imageUrls), // ✅ Store as JSON string in DB
-            comments, 
-            user_id 
-        };
-
-        const sql = 'INSERT INTO task_submission SET ?';
-        const [result] = await db.query(sql, [data]);
-
-        if (result.affectedRows > 0) {
-            return res.status(200).json({ 
-                message: "Task Submitted Successfully", 
-                file_urls: imageUrls 
+            // ✅ Upload to Cloudinary
+            const uploadResult = await cloudinary.uploader.upload(file.tempFilePath, {
+                folder: "task_submissions",
+                resource_type: "auto"
             });
+
+            console.log("Cloudinary Upload Result:", uploadResult);
+
+            submitFileUrl = uploadResult.secure_url; // ✅ Store URL
         } else {
-            return res.status(500).json({ message: "Failed to submit task" });
+            console.log("⚠ No file found in request!");
         }
+
+        // ✅ Save in Database
+        const [result] = await db.query(
+            `INSERT INTO task_submission (task_id, submitFile, comments, user_id) VALUES (?, ?, ?, ?)`,
+            [task_id, submitFileUrl, comments || "", user_id]
+        );
+
+        // ✅ Fetch new record
+        const [newSubmission] = await db.query("SELECT * FROM task_submission WHERE id = ?", [result.insertId]);
+
+        res.status(201).json({
+            status: "true",
+            message: "Task submission created successfully.",
+            data: newSubmission[0]
+        });
+
     } catch (error) {
-        console.error("Submit Task Error:", error);
-        return res.status(500).json({ error: error.message });
+        console.error("Create Task Submission Error:", error);
+        res.status(500).json({ status: "false", message: "Server error." });
     }
 };
+
+
+
 
 
 const getTaskSubmission = async (req, res) => {

@@ -19,7 +19,7 @@ const assignRoutes = require('./routes/assignRoutes');
 //veni and gautam
 const companyRoutes = require('./routes/companyRoutes');
 const projectClientRoutes= require('./routes/projectClientRoutes');
-const submitTaskRoutes= require('./routes/submitTaskRoutes');
+const submitRoutes= require('./routes/submitRoutes');
 
 const db = require('./config');
 const app = express();
@@ -35,7 +35,7 @@ app.use(cors({
 }));
 // ✅ Increase Payload Limit for Base64 Images
 app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -92,7 +92,7 @@ app.use('/api/assign', assignRoutes);
 //veni and gautam
 app.use('/api/company', companyRoutes);
 app.use('/api/client', projectClientRoutes);
-app.use('/api/submitTask', submitTaskRoutes);
+app.use('/api/submit', submitRoutes);
 
 
 // app.use('/api/user', authRoutes);
