@@ -15,11 +15,13 @@ const designerRoutes = require('./routes/designerRoutes');
 const adminDashboardRoutes = require('./routes/adminDashboardRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const assignRoutes = require('./routes/assignRoutes');
+const adminInvoiceRoutes = require('./routes/adminInvoiceRoutes');
 
 //veni and gautam
 const companyRoutes = require('./routes/companyRoutes');
 const projectClientRoutes= require('./routes/projectClientRoutes');
 const submitRoutes= require('./routes/submitRoutes');
+
 
 const db = require('./config');
 const app = express();
@@ -89,10 +91,12 @@ app.use('/api/designer', designerRoutes);
 app.use('/api/adminDashboard', adminDashboardRoutes);
 app.use('/api/task', taskRoutes);
 app.use('/api/assign', assignRoutes);
+app.use('/api/adminInvoice', adminInvoiceRoutes);
 //veni and gautam
 app.use('/api/company', companyRoutes);
 app.use('/api/client', projectClientRoutes);
 app.use('/api/submit', submitRoutes);
+
 
 
 // app.use('/api/user', authRoutes);

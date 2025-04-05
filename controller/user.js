@@ -119,7 +119,6 @@ const editProfile = async (req, res) => {
 };
 
 
-
 // Get All Users
 const getAllUsers = async (req, res) => {
     try {
@@ -261,18 +260,17 @@ const deleteUserById = async (req, res) => {
 // };
 
 
-
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
-        // 1️⃣ Check karo ki user exist karta hai ya nahi
+        // Check karo ki user exist karta hai ya nahi
         const [user] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
         if (user.length === 0) {
             return res.status(404).json({ status: "false", message: "User nahi mila." });
         }
 
-        // 2️⃣ Google Sign-In users ka password reset allow nahi hoga
+        // Google Sign-In users ka password reset allow nahi hoga
         if (user[0].googleSignIn === "true") {
             return res.status(400).json({
                 status: "false",
@@ -281,15 +279,15 @@ const forgotPassword = async (req, res) => {
             });
         }
 
-        // 3️⃣ Ek Unique Reset Token Generate karo
+        // Ek Unique Reset Token Generate karo
         const resetToken = crypto.randomBytes(32).toString("hex");
         const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min valid rahega
 
-        // 4️⃣ Database me Token Save karo
+        // Database me Token Save karo
         await db.query("UPDATE users SET resetToken = ?, resetTokenExpiry = ? WHERE email = ?", 
                        [resetToken, resetTokenExpiry, email]);
 
-        // 5️⃣ Email bhejne ke liye Nodemailer ka use karo
+        // Email bhejne ke liye Nodemailer ka use karo
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -321,14 +319,14 @@ const resetPassword = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // 1️⃣ Check karo ki user exist karta hai ya nahi
+        // Check karo ki user exist karta hai ya nahi
         const [user] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
 
         if (user.length === 0) {
             return res.status(404).json({ status: "false", message: "User not found with this email." });
         }
 
-        // 2️⃣ Google Sign-In users ka password reset allow nahi hoga
+        
         if (user[0].googleSignIn === "true") {
             return res.status(400).json({
                 status: "false",
@@ -336,10 +334,10 @@ const resetPassword = async (req, res) => {
             });
         }
 
-        // 3️⃣ Naya password hash karo
+        // Naya password hash karo
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 4️⃣ Password update karo
+        // Password update karo
         await db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email]);
 
         res.status(200).json({ status: "true", message: "Password reset successfully." });
@@ -392,11 +390,10 @@ const login = async (req, res) => {
 };
 
 
-
-
 // Protected Route
 const protectedRoute = (req, res) => {
     res.json({ message: 'You have accessed a protected route!', user: req.user });
+    
 };
 
 

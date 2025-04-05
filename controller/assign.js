@@ -174,7 +174,7 @@ const getProductionDashboard = async (req, res) => {
         const [[{ approved }]] = await db.query("SELECT COUNT(*) AS approved FROM tasks WHERE status = 'Approved'");
         const [[{ rejected }]] = await db.query("SELECT COUNT(*) AS rejected FROM tasks WHERE status = 'Rejected'");
         const [[{ pending }]] = await db.query("SELECT COUNT(*) AS pending FROM tasks WHERE status = 'Pending'");
-        const [[{ overdue }]] = await db.query("SELECT COUNT(*) AS overdue FROM tasks WHERE deadline < CURDATE() AND status != 'Completed'");
+        const [[{ overdue }]] = await db.query("SELECT COUNT(*) AS overdue FROM tasks WHERE endDate < CURDATE() AND status != 'Completed'");
 
         // Get team workload
         const [teamWorkload] = await db.query(`
@@ -186,7 +186,7 @@ const getProductionDashboard = async (req, res) => {
 
         // Get recent tasks
         const [recentTasks] = await db.query(`
-            SELECT t.id, t.taskName, u.name AS assignedTo, t.deadline, t.status, t.priority 
+            SELECT t.id, t.taskName, u.name AS assignedTo, t.endDate, t.status, t.priority 
             FROM tasks t 
             LEFT JOIN users u ON t.assignTo = u.id 
             ORDER BY t.timestamp DESC 
@@ -208,8 +208,6 @@ const getProductionDashboard = async (req, res) => {
         res.status(500).json({ status: "false", message: "Server error" });
     }
 };
-
-
 
 
 

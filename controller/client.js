@@ -104,7 +104,6 @@ const getSingleClient = async (req, res) => {
 };
 
 
-
 const updateClient = async (req, res) => {
     try {
         const { id } = req.params;

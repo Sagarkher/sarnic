@@ -32,7 +32,6 @@ const upload = multer({ storage });
 
 
 
-
 const submitTask = async (req, res) => {
     try {
         console.log("Request Body:", req.body);
@@ -61,7 +60,7 @@ const submitTask = async (req, res) => {
 
             submitFileUrl = uploadResult.secure_url; // ✅ Store URL
         } else {
-            console.log("⚠ No file found in request!");
+            console.log("No file found in request!");
         }
 
         // ✅ Save in Database
@@ -86,9 +85,6 @@ const submitTask = async (req, res) => {
 };
 
 
-
-
-
 const getTaskSubmission = async (req, res) => {
     try {
         const {user_id} = req.params;
@@ -104,6 +100,7 @@ const getTaskSubmission = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 };
+
 
 const getTaskSubmissionById = async (req, res) => {
     try {
